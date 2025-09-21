@@ -33,9 +33,9 @@ ptr @ .attr   # 通过指针访问属性
 
 ## 数据类型操作
 
-### 1. 列表操作（需要指针）
+### 1. 列表操作
 ```
-# 创建列表（返回列表指针）
+# 创建列表（返回列表）
 1 2 3 3 list &myList =  # &myList 指向列表[1, 2, 3]
 
 # 访问列表元素
@@ -51,7 +51,7 @@ myList .len !        # 获取列表长度：3
 
 ### 2. 字典操作
 ```
-# 创建字典（返回字典指针）
+# 创建字典（返回字典）
 "name" "John" "age" 30 2 dict &myDict =
 
 # 访问字典元素
@@ -71,23 +71,29 @@ myList .len !        # 获取列表长度：3
 ```
 # 基本函数
 {
-  &y = &x = x y + return
+  &y = &x = 
+  x y + return
 } &add =  # 函数赋值
 
 # 语法糖
 {
-  y = x = x y + return
+  &y = &x = 
+  x y + return
 } add def  # 等价于 &add =
 
 # 可变参数函数
 {
-  &n = 0 &sum =
+  &n = 
+  0 &sum =
+
   0 &i =  # 添加索引变量
   { i n < }
   {
-    &arg = arg sum + &sum =
+    &arg = 
+    arg sum + &sum =
     1 i + &i =  # 更新索引
   } while
+
   sum return
 } &sum =
 ```
@@ -225,7 +231,7 @@ head &current =
 &mul &funcs 2 set !
 
 # 通过索引调用
-3 4 funcs 0 get ! @ !  # add(3, 4)
+3 4 0 funcs .get ! @ !  # add(3, 4)
 ```
 
 ## 内置函数和操作符
@@ -233,10 +239,10 @@ head &current =
 
 ### 1. 栈操作
 ```
-dup    # 复制栈顶元素
-swap   # 交换栈顶两个元素
-drop   # 丢弃栈顶元素
-over   # 复制栈顶第二个元素
+dup !   # 复制栈顶元素
+swap !  # 交换栈顶两个元素
+drop !  # 丢弃栈顶元素
+over !  # 复制栈顶第二个元素
 ```
 
 ### 2. 类型检查
