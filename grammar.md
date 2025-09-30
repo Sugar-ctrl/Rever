@@ -72,13 +72,13 @@ myList .len !        # 获取列表长度：3
 # 基本函数
 {
   &y = &x = 
-  x y + return
+  x y + ##return## # return将作为语法糖加入，作用为扔掉添加的栈（除了栈顶）并立即退出代码块
 } &add =  # 函数赋值
 
 # 语法糖
 {
   &y = &x = 
-  x y + return
+  x y + ##return##
 } add def  # 等价于 &add =
 
 # 可变参数函数
@@ -94,7 +94,7 @@ myList .len !        # 获取列表长度：3
     1 i + &i =  # 更新索引
   } while
 
-  sum return
+  sum ##return##
 } &sum =
 ```
 
@@ -257,6 +257,15 @@ over !  # 复制栈顶第二个元素
 "Enter name: " print !
 read ! &name =  # 读取输入
 "Hello, " name + print !
+```
+
+### 4. return操作
+下面的例子里return被注释掉了，此时这段代码块也可以正常返回，因为最终只添加了一个栈元素是a+1的值，外部程序可以读到。其实也可以在栈上添加更多值，与外部代码配合可以实现多个返回值的效果，但需小心防止代码块结束时栈没清干净。
+```
+{
+  &a =
+  1 a + ##return##
+} foo def
 ```
 
 ## 完整示例
