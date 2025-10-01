@@ -1,6 +1,3 @@
-import re
-
-
 def process_escapes(s: str) -> str:
     """
     处理字符串中的转义序列（沿用Python规则）
