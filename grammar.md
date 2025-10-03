@@ -36,7 +36,7 @@ ptr @ .attr   # 通过指针访问属性
 ### 1. 列表操作
 ```
 # 创建列表（返回列表）
-1 2 3 3 list &myList =  # &myList 指向列表[1, 2, 3]
+1 2 3 3 list ! &myList =  # &myList 指向列表[1, 2, 3]
 
 # 访问列表元素
 0 myList .get !      # 获取第一个元素：1
@@ -52,7 +52,7 @@ myList .len !        # 获取列表长度：3
 ### 2. 字典操作
 ```
 # 创建字典（返回字典）
-"name" "John" "age" 30 2 dict &myDict =
+"name" "John" "age" 30 2 dict ! &myDict =
 
 # 访问字典元素
 "name" myDict .get !     # "John"
@@ -286,7 +286,7 @@ read ! &name =  # 读取输入
 ### 列表处理
 ```
 # 创建并处理列表
-1 2 3 4 4 list &numbers =
+1 2 3 4 4 list ! &numbers =
 0 &sum =
 numbers .len ! &length =  # 先保存长度
 0 &i =  # 添加索引变量
@@ -309,7 +309,8 @@ employee .greet !  # "I'm Alice, the Manager!"
 personRef .greet !  # 仍然调用Employee的greet方法
 ```
 
-## 语法总结表
+## 总结
+### 语法总结表
 
 | 操作 | 语法 | 示例 |
 |------|------|------|
@@ -319,5 +320,20 @@ personRef .greet !  # 仍然调用Employee的greet方法
 | 成员访问 | `对象 .属性` | `obj .attr` |
 | 指针成员 | `指针 @ .属性` | `ptr @ .attr` |
 | 方法调用 | `对象 .方法 !` | `obj .method !` |
-| 列表创建 | `元素 n list` | `1 2 3 3 list` |
+| 列表创建 | `元素 n list !` | `1 2 3 3 list !` |
 | 函数定义 | `{代码} &函数 =` | `{ + return } &add =` |
+
+### 关键字总结表
+| 关键字 | 作用|
+| --- | --- |
+| + - * / | 加减乘除 |
+| ! | 调用函数 |
+| @ | 解引用 |
+| . | 成员访问 |
+| & | 引用；可与成员访问结合为.&attr |
+| > < >= <= == != | 比较运算符 |
+| { } | 代码块 |
+| = | 赋值 |
+| " | 字符串 |
+| and or not | 逻辑运算符 |
+| is | 身份运算符 |
