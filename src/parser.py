@@ -2,6 +2,24 @@ import src.ast_types as ast
 import re
 
 
+def process_string_escapes(s: str) -> str:
+    """
+    处理字符串中的转义序列（沿用Python规则）
+    """
+    if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
+        inner = s[1:-1]
+        try:
+            processed = inner.encode().decode('unicode_escape')
+            return processed
+        except UnicodeDecodeError:
+            print(f"Warning: Unescaped quote in string literal: {s}")
+            return inner
+    # 处理未闭合字符串
+    if len(s) >= 1 and s[0] == '"':
+        return s[1:]
+    return s
+
+
 def parse(tokens: list[str]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]]:
     """
     解析tokens列表
@@ -81,7 +99,7 @@ def parse(tokens: list[str]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]
 
         if i[0] == i[-1] == '"':
             asts_non_block.append(
-                ast.StringLiteral(value=i[1:-1])
+                ast.StringLiteral(value=process_string_escapes(i))
             )
             continue
 

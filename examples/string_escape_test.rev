@@ -1,0 +1,3 @@
+"Hello\nWorld" print !
+"Hello\tTab" print !
+"Quote\"Inside" print !

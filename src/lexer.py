@@ -1,18 +1,3 @@
-def process_escapes(s: str) -> str:
-    """
-    处理字符串中的转义序列（沿用Python规则）
-    """
-    if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
-        inner = s[1:-1]
-        try:
-            processed = inner.encode().decode('unicode_escape')
-            return '"' + processed + '"'
-        except UnicodeDecodeError:
-            print(f"Warning: Unescaped quote in string literal: {s}")
-            return s
-    return s
-
-
 def tokenize(code: str) -> list[str]:
     '''
     词法分析器
@@ -41,7 +26,7 @@ def tokenize(code: str) -> list[str]:
             if (current_index < len(code)
                     and code[current_index] == '"'):
                 tokens.append(
-                    process_escapes(code[start_index:current_index+1])
+                    code[start_index:current_index+1]
                 )
             else:
                 # 未闭合字符串，保留原始字符串
