@@ -12,7 +12,7 @@ class ReverError(Exception):
     def __str__(self) -> str:
         result:str = f'ReverError - {self.__class__.__name__} cause during {self.error_duration.name}'
         if self.args:
-            result += f': {self.args[0]}'
+            result += f': {''.join(self.args)}'
         return result + self.format_message()
     
     def format_message(self) -> str:
