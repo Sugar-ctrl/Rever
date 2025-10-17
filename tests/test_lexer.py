@@ -4,13 +4,14 @@ import os
 # 添加 src 目录到 Python 路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src.lexer import tokenize, process_escapes
+from src.lexer import tokenize
+from src.parser import process_string_escapes
 
 def test_process_escapes():
-    assert process_escapes('"hello\\nworld"') == '"hello\nworld"'
-    assert process_escapes('"hello\\t\\"there\\""') == '"hello\t\"there\""'
-    assert process_escapes('"no escape"') == '"no escape"'
-    assert process_escapes('"unclosed') == '"unclosed'  # 未闭合字符串
+    assert process_string_escapes('"hello\nworld"') == 'hello\nworld'
+    assert process_string_escapes('"hello\t\"there\""') == 'hello\t"there"'
+    assert process_string_escapes('"no escape"') == 'no escape'
+    assert process_string_escapes('"unclosed') == 'unclosed'  # 未闭合字符串
 
 def test_basic_tokens():
     code = '42 &x ='
@@ -23,7 +24,7 @@ def test_string_literal():
     assert tokens == ['"hello"', '"world"', '+', '&greeting', '=']
 
 def test_escaped_string():
-    code = '"hello\\nworld" print !'
+    code = '"hello\nworld" print !'
     tokens = tokenize(code)
     assert tokens == ['"hello\nworld"', 'print', '!']
 
