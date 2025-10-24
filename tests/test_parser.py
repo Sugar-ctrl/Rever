@@ -1,4 +1,10 @@
 import pytest
+import sys
+import os
+
+# 添加 src 目录到 Python 路径
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from src.lexer import tokenize
 from src.parser import parse
 import src.ast_types as ast
@@ -393,31 +399,74 @@ def test_negative_in_blocks():
     assert isinstance(block2[2], ast.KeywordOrOperator)
     assert block2[2].keyword == '='
 
-def test_complex_negative_expressions():
-    """测试包含负数的复杂表达式"""
-    code = '-5 3 + &result = result @ -2 *'
-    tokens = tokenize(code)
-    asts, blocks = parse(tokens)
-    
-    expected_values = [
-        (ast.IntLiteral, -5),      # -5
-        (ast.IntLiteral, 3),       # 3  
-        (ast.KeywordOrOperator, '+'),
-        (ast.GetVarPtr, 'result'),
-        (ast.KeywordOrOperator, '='),
-        (ast.GetVar, 'result'),
-        (ast.KeywordOrOperator, '@'),
-        (ast.IntLiteral, -2),      # -2
-        (ast.KeywordOrOperator, '*')
-    ]
-    
-    for i, (expected_type, expected_value) in enumerate(expected_values):
-        assert isinstance(asts[i], expected_type)
-        if isinstance(asts[i], (ast.IntLiteral, ast.FloatLiteral)):
-            assert asts[i].value == expected_value
-        elif isinstance(asts[i], ast.GetVarPtr):
-            assert asts[i].varname == expected_value
-        elif isinstance(asts[i], ast.GetVar):
-            assert asts[i].varname == expected_value
-        elif isinstance(asts[i], ast.KeywordOrOperator):
-            assert asts[i].keyword == expected_value
+def test_complex_negative_expressions():
+    """测试包含负数的复杂表达式"""
+    code = '-5 3 + &result = result @ -2 *'
+    tokens = tokenize(code)
+    asts, blocks = parse(tokens)
+    
+    expected_values = [
+        (ast.IntLiteral, -5),      # -5
+        (ast.IntLiteral, 3),       # 3  
+        (ast.KeywordOrOperator, '+'),
+        (ast.GetVarPtr, 'result'),
+        (ast.KeywordOrOperator, '='),
+        (ast.GetVar, 'result'),
+        (ast.KeywordOrOperator, '@'),
+        (ast.IntLiteral, -2),      # -2
+        (ast.KeywordOrOperator, '*')
+    ]
+    
+    for i, (expected_type, expected_value) in enumerate(expected_values):
+        assert isinstance(asts[i], expected_type)
+        if isinstance(asts[i], (ast.IntLiteral, ast.FloatLiteral)):
+            assert asts[i].value == expected_value
+        elif isinstance(asts[i], ast.GetVarPtr):
+            assert asts[i].varname == expected_value
+        elif isinstance(asts[i], ast.GetVar):
+            assert asts[i].varname == expected_value
+        elif isinstance(asts[i], ast.KeywordOrOperator):
+            assert asts[i].keyword == expected_value
+
+
+# 测试重构后的辅助函数
+def test_tokens_to_asts():
+    """测试tokens到AST的转换函数"""
+    from src.parser import tokens_to_asts
+    tokens = ['42', '&x', '=', '"hello"']
+    asts = tokens_to_asts(tokens)
+    
+    assert len(asts) == 4
+    assert isinstance(asts[0], ast.IntLiteral)
+    assert asts[0].value == 42
+    assert isinstance(asts[1], ast.GetVarPtr)
+    assert asts[1].varname == 'x'
+    assert isinstance(asts[2], ast.KeywordOrOperator)
+    assert asts[2].keyword == '='
+    assert isinstance(asts[3], ast.StringLiteral)
+    assert asts[3].value == 'hello'
+
+
+def test_find_code_blocks():
+    """测试查找代码块函数"""
+    from src.parser import find_code_blocks
+    tokens = ['{', '42', '&x', '=', '}']
+    blocks = find_code_blocks(tokens)
+    
+    assert len(blocks) == 1
+    assert blocks[0] == (0, 4)  # 开始索引0，结束索引4
+
+
+def test_process_code_blocks():
+    """测试处理代码块函数"""
+    from src.parser import process_code_blocks
+    # 创建一些模拟的AST节点
+    ast_nodes = [ast.BaseAst(), ast.BaseAst(), ast.BaseAst(), ast.BaseAst(), ast.BaseAst()]
+    block_indices = [(0, 4)]  # 一个从索引0到4的块
+    
+    processed_asts, block_contents = process_code_blocks(ast_nodes, block_indices)
+    
+    assert len(processed_asts) == 1
+    assert isinstance(processed_asts[0], ast.CodeBlock)
+    assert len(block_contents) == 1
+    assert len(block_contents[0]) == 3  # 中间的3个节点

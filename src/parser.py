@@ -20,98 +20,105 @@ def process_string_escapes(s: str) -> str:
     return s
 
 
-def parse(tokens: list[str]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]]:
+def tokens_to_asts(tokens: list[str]) -> list[ast.BaseAst]:
     """
-    解析tokens列表
-    :param tokens: 待解析的tokens列表
-    :return: 解析后的asts列表和block_content列表
+    将 tokens 转换为基本 AST 节点
+    :param tokens: 待转换的tokens列表
+    :return: 转换后的AST节点列表
     """
-    asts_non_block: list[ast.BaseAst] = []
+    asts: list[ast.BaseAst] = []
     
-    # 第一步：将 tokens 转换为基本 AST 节点
-    for i in tokens:
-        if i in ['{', '}']:
-            asts_non_block.append(ast.BaseAst()) # 占位符
+    for token in tokens:
+        if token in ['{', '}']:
+            asts.append(ast.BaseAst()) # 占位符
             continue
 
-        if i in ['+', '-', '*', '/',
-                 '!', '@', '.', '&', '=',
-                 '>', '<', '>=', '<=', '==', '!=',
-                 'and', 'or', 'not', 'is']:
-            asts_non_block.append(
-                ast.KeywordOrOperator(keyword=i)
+        if token in ['+', '-', '*', '/',
+                     '!', '@', '.', '&', '=',
+                     '>', '<', '>=', '<=', '==', '!=',
+                     'and', 'or', 'not', 'is']:
+            asts.append(
+                ast.KeywordOrOperator(keyword=token)
             )
             continue
 
-        if i in ['true', 'false']:
-            asts_non_block.append(
-                ast.BooleanLiteral(value=(i == 'true'))
+        if token in ['true', 'false']:
+            asts.append(
+                ast.BooleanLiteral(value=(token == 'true'))
             )
             continue
 
-        if i == 'null':
-            asts_non_block.append(
+        if token == 'null':
+            asts.append(
                 ast.NullLiteral()
             )
             continue
 
-        if re.match(r'^\.[a-zA-Z_][a-zA-Z0-9_]*$', i):
-            asts_non_block.append(
-                ast.GetAttr(attrname=i[1:])
+        if re.match(r'^\.[a-zA-Z_][a-zA-Z0-9_]*$', token):
+            asts.append(
+                ast.GetAttr(attrname=token[1:])
             )
             continue
 
-        if re.match(r'^\.&[a-zA-Z_][a-zA-Z0-9_]*$', i):
-            asts_non_block.append(
-                ast.GetAttrPtr(attrname=i[2:])
+        if re.match(r'^\.&[a-zA-Z_][a-zA-Z0-9_]*$', token):
+            asts.append(
+                ast.GetAttrPtr(attrname=token[2:])
             )
             continue
 
-        if re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', i):
-            asts_non_block.append(
-                ast.GetVar(varname=i)
+        if re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', token):
+            asts.append(
+                ast.GetVar(varname=token)
             )
             continue
 
-        if re.match(r'^&[a-zA-Z_][a-zA-Z0-9_]*$', i):
-            asts_non_block.append(
-                ast.GetVarPtr(varname=i[1:])
+        if re.match(r'^&[a-zA-Z_][a-zA-Z0-9_]*$', token):
+            asts.append(
+                ast.GetVarPtr(varname=token[1:])
             )
             continue
 
-        if re.match(r'^\-?[0-9]+$', i):
-            asts_non_block.append(
-                ast.IntLiteral(value=int(i))
+        if re.match(r'^\-?[0-9]+$', token):
+            asts.append(
+                ast.IntLiteral(value=int(token))
             )
             continue
 
-        if re.match(r'^\-?0x[0-9a-fA-F]+$', i):
-            asts_non_block.append(
-                ast.IntLiteral(value=int(i, 16))
+        if re.match(r'^\-?0x[0-9a-fA-F]+$', token):
+            asts.append(
+                ast.IntLiteral(value=int(token, 16))
             )
             continue
 
-        if re.match(r'^\-?0b[01]+$', i):
-            asts_non_block.append(
-                ast.IntLiteral(value=int(i, 2))
+        if re.match(r'^\-?0b[01]+$', token):
+            asts.append(
+                ast.IntLiteral(value=int(token, 2))
             )
             continue
 
-        if i[0] == i[-1] == '"':
-            asts_non_block.append(
-                ast.StringLiteral(value=process_string_escapes(i))
+        if token[0] == token[-1] == '"':
+            asts.append(
+                ast.StringLiteral(value=process_string_escapes(token))
             )
             continue
 
-        if re.match(r'^\-?[0-9]+(\.[0-9]+)?$', i):
-            asts_non_block.append(
-                ast.FloatLiteral(value=float(i))
+        if re.match(r'^\-?[0-9]+(\.[0-9]+)?$', token):
+            asts.append(
+                ast.FloatLiteral(value=float(token))
             )
             continue
 
-        raise SyntaxError(f"Unknown token: {i}") # TODO:以后应调用rever的错误处理
+        raise SyntaxError(f"Unknown token: {token}") # TODO:以后应调用rever的错误处理
+        
+    return asts
 
-    # 第二步：找出其中的所有代码块范围
+
+def find_code_blocks(tokens: list[str]) -> list[tuple[int, int]]:
+    """
+    找出其中的所有代码块范围
+    :param tokens: tokens列表
+    :return: 代码块范围列表
+    """
     block_start_index_tmp: list[int] = []
     block_index: list[tuple[int, int]] = []
 
@@ -124,33 +131,57 @@ def parse(tokens: list[str]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]
             block_index.append((block_start_index_tmp.pop(), index))
     if len(block_start_index_tmp) != 0:
         raise SyntaxError("Unmatched '{'") # TODO:以后应调用rever的错误处理
+        
+    return block_index
 
-    # 第三步：根据代码块范围，把代码块中的内容打包放进block_content_with_space
+
+def process_code_blocks(asts: list[ast.BaseAst], block_index: list[tuple[int, int]]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]]:
+    """
+    处理代码块内容
+    :param asts: AST节点列表
+    :param block_index: 代码块范围列表
+    :return: 处理后的AST节点列表和代码块内容列表
+    """
+    # 根据代码块范围，把代码块中的内容打包放进block_content_with_space
     # 同时，在asts_with_space中用CodeBlock以及None占位符替换代码块内容
     block_content_with_space: list[list[ast.BaseAst|None]] = []
-    asts_with_space: list[ast.BaseAst|None] = asts_non_block.copy()
+    asts_with_space: list[ast.BaseAst|None] = asts.copy()
     for index, (start, end) in enumerate(block_index):
         block_content_with_space.append(asts_with_space[start+1:end])
         asts_with_space[start] = ast.CodeBlock(index)
         asts_with_space[start+1:end+1] = [None] * (end - start)
 
-    # 第四步：把asts_with_space中的None占位符去掉，得到最终的asts列表
-    asts: list[ast.BaseAst] = []
-    for i in asts_with_space:
-        if i is None:
-            continue
-        else:
-            asts.append(i)
+    # 把asts_with_space中的None占位符去掉，得到最终的asts列表
+    final_asts: list[ast.BaseAst] = []
+    for node in asts_with_space:
+        if node is not None:
+            final_asts.append(node)
 
-    # 第五步：把block_content_with_space中的None占位符去掉，得到最终的block_content列表
-    block_content: list[ast.BaseAst] = []
-    for i in block_content_with_space:
+    # 把block_content_with_space中的None占位符去掉，得到最终的block_content列表
+    block_content: list[list[ast.BaseAst]] = []
+    for block in block_content_with_space:
         tmp: list[ast.BaseAst] = []
-        for j in i:
-            if j is None:
-                continue
-            else:
-                tmp.append(j)
+        for node in block:
+            if node is not None:
+                tmp.append(node)
         block_content.append(tmp)
+
+    return final_asts, block_content
+
+
+def parse(tokens: list[str]) -> tuple[list[ast.BaseAst], list[list[ast.BaseAst]]]:
+    """
+    解析tokens列表
+    :param tokens: 待解析的tokens列表
+    :return: 解析后的asts列表和block_content列表
+    """
+    # 第一步：将 tokens 转换为基本 AST 节点
+    asts_non_block = tokens_to_asts(tokens)
+    
+    # 第二步：找出其中的所有代码块范围
+    block_index = find_code_blocks(tokens)
+
+    # 第三步：处理代码块内容
+    asts, block_content = process_code_blocks(asts_non_block, block_index)
 
     return asts, block_content
