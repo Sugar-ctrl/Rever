@@ -25,3 +25,15 @@ class ReverSyntaxError(ReverError):
 class ReverUnicodeError(ReverError):
     def __init__(self, *args: object) -> None:
         super().__init__(*args, error_duration=ErrorDurationType.START)
+
+class ReverMemoryError(ReverError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args, error_duration=ErrorDurationType.RUN)
+
+class ReverAttributeError(ReverError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args, error_duration=ErrorDurationType.RUN)
+
+class ReverNameError(ReverError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args, error_duration=ErrorDurationType.RUN)

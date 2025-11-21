@@ -1,3 +1,5 @@
+import src.runtime.objects as obj
+
 class BaseAst:
     '''
     ast的基类
@@ -36,7 +38,7 @@ class GetVar(BaseAst):
 
 
 class GetVarPtr(BaseAst):
-    '''
+    r'''
     获取变量指针的ast节点
     正则：\&[a-zA-Z_][a-zA-Z0-9_]*
     '''
@@ -49,7 +51,8 @@ class Literal(BaseAst):
     '''
     字面量的ast节点的基类
     '''
-    pass
+    def __init__(self):
+        self.value: obj.ReverObject = obj.ReverObject()
 
 
 class KeywordOrOperator(BaseAst):
@@ -68,7 +71,7 @@ class IntLiteral(Literal):
     '''
 
     def __init__(self, value: int):
-        self.value: int = value
+        self.value: obj.ReverObject = obj.ReverObject(value)
 
 
 class StringLiteral(Literal):
@@ -78,7 +81,7 @@ class StringLiteral(Literal):
     '''
 
     def __init__(self, value: str):
-        self.value: str = value
+        self.value: obj.ReverObject = obj.ReverObject(value)
 
 
 class BooleanLiteral(Literal):
@@ -88,7 +91,7 @@ class BooleanLiteral(Literal):
     '''
 
     def __init__(self, value: bool):
-        self.value: bool = value
+        self.value: obj.ReverObject = obj.ReverObject(value)
 
 
 class NullLiteral(Literal):
@@ -96,16 +99,18 @@ class NullLiteral(Literal):
     空字面量的ast节点
     正则：null
     '''
+    def __init__(self):
+        self.value: obj.ReverObject = obj.ReverObject(None)
 
 
 class FloatLiteral(Literal):
-    '''
+    r'''
     浮点数字面量的ast节点
     正则：[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?
     '''
 
     def __init__(self, value: float):
-        self.value: float = value
+        self.value: obj.ReverObject = obj.ReverObject(value)
 
 
 class CodeBlock(BaseAst):
